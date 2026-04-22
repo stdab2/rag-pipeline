@@ -1,0 +1,34 @@
+{
+  "name": "rag-pipeline",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "husky"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stdab2/rag-pipeline.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/stdab2/rag-pipeline/issues"
+  },
+  "homepage": "https://github.com/stdab2/rag-pipeline#readme",
+  "devDependencies": {
+    "@commitlint/cli": "^20.5.0",
+    "@commitlint/config-conventional": "^20.5.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0"
+  },
+  "lint-staged": {
+    "web/src/**/*.{ts,tsx}": [
+      "prettier --write",
+      "eslint --fix -c web/eslint.config.js"
+    ]
+  }
+}
