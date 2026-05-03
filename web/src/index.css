@@ -1,0 +1,49 @@
+@import "tailwindcss";
+
+@theme {
+    --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, 'monospace';
+
+    --color-aws-nav: #232f3e;
+    --color-aws-nav-hover: #31465c;
+    --color-aws-blue: #0073bb;
+    --color-aws-blue-hover: #005ea0;
+    --color-aws-blue-light: #e8f4fb;
+    --color-aws-orange: #ff9900;
+    --color-aws-bg: #f2f3f3;
+    --color-aws-border: #d5dbdb;
+    --color-aws-border-dark: #aab7b8;
+    --color-aws-text: #16191f;
+    --color-aws-muted: #545b64;
+    --color-aws-panel: #ffffff;
+
+    --color-status-indexed: #28a745;
+    --color-status-indexed-bg: #d4edda;
+    --color-status-processing: #ffc107;
+    --color-status-processing-bg: #fff3cd;
+    --color-status-error: #dc3545;
+    --color-status-error-bg: #f8d7da;
+    --color-status-pending: #17a2b8;
+    --color-status-pending-bg: #d1ecf1;
+
+    --shadow-panel: 0 1px 1px 0 rgba(0,0,0,.10), 0 0 0 1px #d5dbdb;
+    --shadow-panel-raised: 0 2px 6px 0 rgba(0,0,0,.12), 0 0 0 1px #d5dbdb;
+}
+
+@layer base {
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+        margin: 0;
+        background-color: var(--color-aws-bg);
+        font-family: var(--font-sans);
+        color: var(--color-aws-text);
+        -webkit-font-smoothing: antialiased;
+    }
+
+    #root {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+}
