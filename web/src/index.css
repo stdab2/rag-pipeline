@@ -47,3 +47,40 @@
         flex-direction: column;
     }
 }
+
+@layer components {
+  .aws-btn-primary {
+    @apply inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium
+           bg-aws-blue text-white border border-aws-blue rounded
+           hover:bg-aws-blue-hover active:bg-aws-blue-hover
+           focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-aws-blue
+           transition-colors duration-100 cursor-pointer select-none;
+  }
+
+  .aws-btn-secondary {
+    @apply inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium
+           bg-white text-aws-text border border-aws-border rounded
+           hover:bg-aws-bg active:bg-aws-bg
+           focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-aws-blue
+           transition-colors duration-100 cursor-pointer select-none;
+  }
+
+  .aws-btn-danger {
+    @apply inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium
+           bg-white text-status-error border border-status-error rounded
+           hover:bg-status-error-bg
+           transition-colors duration-100 cursor-pointer select-none;
+  }
+
+  .aws-panel {
+    @apply bg-aws-panel rounded border border-aws-border shadow-panel;
+  }
+
+  .aws-label {
+    @apply text-xs font-medium text-aws-muted uppercase tracking-wide;
+  }
+
+  .status-badge {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium;
+  }
+}
