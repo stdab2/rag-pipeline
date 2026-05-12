@@ -29,6 +29,10 @@
     "web/src/**/*.{ts,tsx}": [
       "prettier --write",
       "eslint --fix -c web/eslint.config.js"
+    ],
+    "api/app/**/*.py": [
+      "uv run --directory api ruff format",
+      "uv run --directory api ruff check --fix"
     ]
   }
 }

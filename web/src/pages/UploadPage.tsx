@@ -19,20 +19,6 @@ function generateId() {
 	return Math.random().toString(36).slice(2)
 }
 
-function simulateUpload(_file: UploadFile, onProgress: (p: number) => void, onDone: () => void) {
-	let progress = 0
-	const interval = setInterval(() => {
-		progress += Math.random() * 18 + 5
-		if (progress >= 100) {
-			clearInterval(interval)
-			onProgress(100)
-			setTimeout(onDone, 200)
-		} else {
-			onProgress(Math.min(progress, 99))
-		}
-	}, 150)
-}
-
 export function UploadPage() {
 	const [files, setFiles] = useState<UploadFile[]>([])
 	const [dragActive, setDragActive] = useState(false)
@@ -52,14 +38,42 @@ export function UploadPage() {
 		setFiles((prev) => [...prev, ...newFiles])
 	}
 
+	const uploadFile = (file: UploadFile, onProgress: (p: number) => void, onDone: () => void) => {
+		const formData = new FormData()
+		formData.append('file', file.file)
+
+		const apiBaseUrl = import.meta.env.VITE_API_BASE_URL
+		const endpoint = `${apiBaseUrl}/files/uploadfile`
+
+		fetch(endpoint, { method: 'POST', body: formData }).then((res) => {
+			const reader = res.body!.getReader()
+			const decoder = new TextDecoder()
+
+			const read = () =>
+				reader.read().then(({ done, value }) => {
+					if (done) return onDone()
+					const text = decoder.decode(value)
+					const match = text.match(/data: (.+)/)
+					if (match) {
+						const { progress } = JSON.parse(match[1]!)
+						onProgress(progress)
+					}
+					read()
+				})
+
+			read()
+		})
+	}
+
 	const startUpload = () => {
 		setFiles((prev) =>
 			prev.map((file) => (file.status === 'queued' ? { ...file, status: 'uploading' } : file))
 		)
+
 		files
 			.filter((file) => file.status === 'queued')
 			.forEach((file) => {
-				simulateUpload(
+				uploadFile(
 					file,
 					(p) =>
 						setFiles((prev) =>
