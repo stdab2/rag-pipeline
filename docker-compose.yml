@@ -20,9 +20,9 @@ services:
       - "8000:8000"
     environment:
       CLIENT_URL: http://localhost:5173
-      DATABASE_URL: postgresql://postgres:postgres@db:5432/pg_db
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/pg_db
     volumes:
-      - ./api/app:/app/app
+      - ./api:/app
     depends_on:
       - db
 

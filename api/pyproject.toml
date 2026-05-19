@@ -5,7 +5,15 @@ description = "rag pipeline api"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
+    "aiofiles>=25.1.0",
+    "alembic>=1.18.4",
+    "asyncpg>=0.31.0",
     "fastapi[standard]>=0.136.1",
+    "pgvector>=0.4.2",
+    "pydantic>=2.13.4",
+    "python-dotenv>=1.2.2",
+    "sqlalchemy>=2.0.49",
+    "sqlmodel>=0.0.38",
 ]
 
 [dependency-groups]
