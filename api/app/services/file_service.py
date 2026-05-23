@@ -2,7 +2,6 @@ from pathlib import Path
 
 import aiofiles
 from fastapi import UploadFile
-from langchain_community.document_loaders import PyPDFLoader
 from langchain_core.documents import Document
 from langchain_postgres import PGVector
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -11,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.file import File as FileModel
 from app.repositories.file_repository import FileRepository
 from app.schemas.file import FileCreate
+from app.services.to_documents_conversion import FileToDocumentsConversionFactory
 
 
 class FileService:
@@ -41,7 +41,9 @@ class FileService:
             session, file_info, str(file_path)
         )
 
-        documents = self.__convert_to_documents(file_path)
+        documents = FileToDocumentsConversionFactory.get_converter(
+            file.content_type
+        ).convert(str(file_path))
         all_splits = self.text_splitter.split_documents(documents)
         self.__add_metadata(all_splits, file_model)
         await self.vector_store.aadd_documents(all_splits)
@@ -54,9 +56,3 @@ class FileService:
             doc.metadata["file_id"] = str(file.id)
             doc.metadata["content_type"] = file.content_type
             doc.metadata["size"] = file.size
-
-    def __convert_to_documents(self, file_path: Path) -> list[Document]:
-        loader = PyPDFLoader(str(file_path))
-        documents = loader.load()
-
-        return documents
