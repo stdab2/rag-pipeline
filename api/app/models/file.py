@@ -15,6 +15,8 @@ class File(Base):
     id: Mapped[UUID] = mapped_column(default=uuid4, primary_key=True)
     name: Mapped[str] = mapped_column(String(55))
     file_path: Mapped[str] = mapped_column(String(255))
+    content_type: Mapped[str] = mapped_column(String(50))
+    size: Mapped[int] = mapped_column()
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
