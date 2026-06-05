@@ -16,6 +16,6 @@ class FileRead(BaseModel):
     id: UUID
     name: str
     file_path: str
-    created_at: datetime
     content_type: str
     size: int
+    created_at: datetime

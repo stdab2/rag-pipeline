@@ -5,7 +5,12 @@ from alembic import context
 import os
 from dotenv import load_dotenv
 
-from app.models.file import Base, File
+import pgvector.sqlalchemy
+
+from app.models.base import Base
+from app.models.file import File
+from app.models.chat import Chat
+from app.models.message import Message
 
 from alembic import context
 
@@ -32,6 +37,15 @@ target_metadata = Base.metadata
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
+def include_object(object, name, type_, reflected, compare_to):
+    """Exclude langchain_pg_collection and langchain_pg_embedding tables from migrations."""
+    if type_ == "table" and name is not None and name.startswith("langchain_"):
+        return False
+    """Exclude index linked to langchain tables."""
+    if type_ == "index" and name is not None and "cmetadata" in name:
+        return False
+    
+    return True
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.
@@ -51,6 +65,7 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        include_object=include_object
     )
 
     with context.begin_transaction():
@@ -59,7 +74,8 @@ def run_migrations_offline() -> None:
 def do_run_migrations(connection):
     context.configure(
         connection=connection,
-        target_metadata=target_metadata
+        target_metadata=target_metadata,
+        include_object=include_object
     )
     with context.begin_transaction():
         context.run_migrations()

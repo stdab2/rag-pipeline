@@ -1,7 +1,8 @@
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.file import File as FileModel
-from app.schemas.file import FileCreate
+from app.schemas.file import FileCreate, FileRead
 
 
 class FileRepository:
@@ -18,3 +19,9 @@ class FileRepository:
         await session.commit()
         await session.refresh(db_file)
         return db_file
+
+    async def get_files(self, session: AsyncSession) -> list[FileRead]:
+        query = select(FileModel)
+        result = await session.execute(query)
+        files = result.scalars().all()
+        return [FileRead.model_validate(file) for file in files]

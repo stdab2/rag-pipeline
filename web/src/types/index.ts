@@ -1,19 +1,15 @@
-export type FileStatus = 'pending' | 'processing' | 'indexed' | 'error'
-
-export interface ManagedFile {
+export interface File {
 	id: string
 	name: string
+	file_path: string
+	content_type: string
 	size: number
-	type: string
-	uploadedAt: Date
-	status: FileStatus
-	errorMessage?: string
+	created_at: Date
 }
 
 export interface ChatMessage {
 	id: string
 	role: 'user' | 'assistant'
 	content: string
-	timestamp: Date
-	sourceFiles?: string[]
+	created_at: Date
 }

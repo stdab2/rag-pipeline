@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.file import File as FileModel
 from app.repositories.file_repository import FileRepository
-from app.schemas.file import FileCreate
+from app.schemas.file import FileCreate, FileRead
 from app.services.to_documents_conversion import FileToDocumentsConversionFactory
 
 
@@ -56,3 +56,7 @@ class FileService:
             doc.metadata["file_id"] = str(file.id)
             doc.metadata["content_type"] = file.content_type
             doc.metadata["size"] = file.size
+
+    async def get_files(self, session: AsyncSession) -> list[FileRead]:
+        files = await self.file_repository.get_files(session)
+        return files

@@ -1,13 +1,15 @@
 from datetime import datetime, timezone
-from uuid import UUID, uuid4
 from enum import Enum
+from typing import TYPE_CHECKING
+from uuid import UUID, uuid4
 
-from sqlalchemy import DateTime, String, ForeignKey
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy import DateTime, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from app.models.base import Base
 
-class Base(DeclarativeBase):
-    pass
+if TYPE_CHECKING:
+    from app.models.chat import Chat
 
 
 class Role(Enum):
@@ -22,7 +24,7 @@ class Message(Base):
     chat_id: Mapped[UUID] = mapped_column(ForeignKey("chat.id"))
     chat: Mapped["Chat"] = relationship(back_populates="messages")
     role: Mapped[Role] = mapped_column()
-    content: Mapped[String] = mapped_column()
+    content: Mapped[str] = mapped_column()
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
