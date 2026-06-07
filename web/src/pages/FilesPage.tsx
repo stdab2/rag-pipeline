@@ -1,62 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Trash2, FileText, Search } from 'lucide-react'
-import { cn, formatBytes } from '@/lib/utils'
+import { cn, formatBytes, formatDate, toDate } from '@/lib/utils'
 import type { File } from '@/types'
 import { ButtonDanger } from '@/components/ButtonDanger'
-import { formatDate } from '@/lib/utils'
 import { SortIcon } from '@/components/SortIcon'
-
-// ── Mock data ────────────────────────────────────────────────────────────────
-const MOCK_FILES: File[] = [
-	{
-		id: '1',
-		name: 'product-manual.pdf',
-		file_path: '/uploads/product-manual.pdf',
-		content_type: 'application/pdf',
-		size: 2_400_000,
-		created_at: new Date('2026-04-01T10:00:00'),
-	},
-	{
-		id: '2',
-		name: 'faq-dataset.pdf',
-		file_path: '/uploads/faq-dataset.pdf',
-		content_type: 'application/pdf',
-		size: 145_000,
-		created_at: new Date('2026-04-02T14:22:00'),
-	},
-	{
-		id: '3',
-		name: 'legal-terms.pdf',
-		file_path: '/uploads/legal-terms.pdf',
-		content_type: 'application/pdf',
-		size: 980_000,
-		created_at: new Date('2026-04-03T09:15:00'),
-	},
-	{
-		id: '4',
-		name: 'release-notes.pdf',
-		file_path: '/uploads/release-notes.pdf',
-		content_type: 'application/pdf',
-		size: 34_000,
-		created_at: new Date('2026-04-04T16:40:00'),
-	},
-	{
-		id: '5',
-		name: 'knowledge-base-v2.pdf',
-		file_path: '/uploads/knowledge-base-v2.pdf',
-		content_type: 'application/pdf',
-		size: 5_100_000,
-		created_at: new Date('2026-04-05T08:00:00'),
-	},
-	{
-		id: '6',
-		name: 'onboarding-guide.pdf',
-		file_path: '/uploads/onboarding-guide.pdf',
-		content_type: 'application/pdf',
-		size: 1_200_000,
-		created_at: new Date('2026-04-06T11:33:00'),
-	},
-]
 
 // ── Sort helpers ─────────────────────────────────────────────────────────────
 type SortKey = 'name' | 'size' | 'uploadedAt'
@@ -66,17 +13,38 @@ function sortFiles(files: File[], key: SortKey, asc: boolean) {
 		let cmp = 0
 		if (key === 'name') cmp = a.name.localeCompare(b.name)
 		if (key === 'size') cmp = a.size - b.size
-		if (key === 'uploadedAt') cmp = a.created_at.getTime() - b.created_at.getTime()
+		if (key === 'uploadedAt')
+			cmp = toDate(a.created_at).getTime() - toDate(b.created_at).getTime()
 		return asc ? cmp : -cmp
 	})
 }
 
 export function FilesPage() {
-	const [files, setFiles] = useState<File[]>(MOCK_FILES)
+	const [files, setFiles] = useState<File[]>([])
 	const [selected, setSelected] = useState<Set<string>>(new Set())
 	const [search, setSearch] = useState<string>('')
 	const [sortKey, setSortKey] = useState<SortKey>('uploadedAt')
 	const [sortAsc, setSortAsc] = useState<boolean>(false)
+
+	useEffect(() => {
+		const apiBaseUrl = import.meta.env.VITE_API_BASE_URL
+
+		const fetchFiles = async () => {
+			const endpoint = `${apiBaseUrl}/files`
+			try {
+				const response = await fetch(endpoint)
+				if (!response.ok) {
+					throw new Error(`Error fetching files: ${response.statusText}`)
+				}
+				const data: File[] = await response.json()
+				setFiles(data)
+			} catch (error) {
+				console.error('Failed to fetch files:', error)
+			}
+		}
+
+		fetchFiles()
+	}, [])
 
 	const filtered = sortFiles(
 		files.filter((file) => file.name.toLowerCase().includes(search.toLowerCase())),

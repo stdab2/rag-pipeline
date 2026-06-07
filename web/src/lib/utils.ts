@@ -13,7 +13,13 @@ export function formatBytes(bytes: number): string {
 	return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`
 }
 
-export function formatDate(date: Date) {
+export function formatDate(dateInput: Date | string): string {
+	const date: Date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput
+
+	if (isNaN(date.getTime())) {
+		return 'Invalid date'
+	}
+
 	return new Intl.DateTimeFormat('en-US', {
 		year: 'numeric',
 		month: 'short',
@@ -21,4 +27,8 @@ export function formatDate(date: Date) {
 		hour: '2-digit',
 		minute: '2-digit',
 	}).format(date)
+}
+
+export function toDate(dateInput: string): Date {
+	return new Date(dateInput)
 }

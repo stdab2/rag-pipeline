@@ -1,12 +1,14 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class MessageCreate(BaseModel):
+    chat_id: UUID
     content: str
     role: str
+    file_ids: list[UUID] = Field(default_factory=list)
 
 
 class MessageRead(BaseModel):
@@ -14,7 +16,6 @@ class MessageRead(BaseModel):
 
     id: UUID
     chat_id: UUID
-    content: str
-    name: str
     role: str
+    content: str
     created_at: datetime

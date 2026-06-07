@@ -3,21 +3,18 @@ import type { KeyboardEvent } from 'react'
 import { Send, FileText, CheckSquare, Square, Bot, User, Loader2, ChevronRight } from 'lucide-react'
 import { cn, formatDate } from '@/lib/utils'
 import type { File, ChatMessage } from '@/types'
+import ReactMarkdown from 'react-markdown'
 
 // ── Mock data ────────────────────────────────────────────────────────────────
-const MOCK_RESPONSES = [
-	'Based on the selected documents, I found the following relevant information:\n\nThe product supports three authentication modes: API key, OAuth 2.0, and SAML SSO. The FAQ dataset confirms that API keys are scoped per-user and expire after 90 days by default.',
-	'According to the knowledge base, the rate limit for the standard plan is 100 requests per minute. Enterprise plans have configurable limits — please refer to Section 4.2 of the product manual for details.',
-	"I couldn't find a definitive answer in the selected files. The FAQ mentions this topic briefly in question 14, but the full details may require checking the external documentation linked there.",
-]
-
 const EXAMPLE_QUESTIONS = [
 	'What authentication methods are supported?',
 	'What are the rate limits for the API?',
 	'How do I reset my API key?',
 ]
 
-function generateId() {
+const CHAT_ID = '74e0ddc7-0dc7-4cfc-96b2-7abaa2ea112c'
+
+function generateTemporaryId() {
 	return Math.random().toString(36).slice(2)
 }
 
@@ -44,12 +41,13 @@ function MessageBubble({ msg }: { msg: ChatMessage }) {
 							: 'bg-white border border-aws-border text-aws-text rounded-tl-none'
 					)}
 				>
-					{msg.content.split('\n').map((line, i) => (
+					<ReactMarkdown>{msg.content}</ReactMarkdown>
+					{/*msg.content.split('\n').map((line, i) => (
 						<span key={i}>
 							{line}
 							{i < msg.content.split('\n').length - 1 && <br />}
 						</span>
-					))}
+					))*/}
 				</div>
 				<span className="text-[11px] text-aws-muted mt-1 px-0.5">
 					{formatDate(msg.created_at)}
@@ -70,9 +68,9 @@ export function ChatPage() {
 
 	useEffect(() => {
 		const apiBaseUrl = import.meta.env.VITE_API_BASE_URL
-		const endpoint = `${apiBaseUrl}/files`
 
 		const fetchFiles = async () => {
+			const endpoint = `${apiBaseUrl}/files`
 			try {
 				const response = await fetch(endpoint)
 				if (!response.ok) {
@@ -80,13 +78,28 @@ export function ChatPage() {
 				}
 				const data: File[] = await response.json()
 				setFiles(data)
-				setSelectedFiles(new Set(data[0]?.id))
+				setSelectedFiles(new Set(data.slice(0, 1).map((f) => f.id)))
 			} catch (error) {
 				console.error('Failed to fetch files:', error)
 			}
 		}
 
+		const fetchMessages = async () => {
+			const endpoint = `${apiBaseUrl}/chat/${CHAT_ID}/messages`
+			try {
+				const response = await fetch(endpoint)
+				if (!response.ok) {
+					throw new Error(`Error fetching messages: ${response.statusText}`)
+				}
+				const data: ChatMessage[] = await response.json()
+				setMessages(data)
+			} catch (error) {
+				console.error('Failed to fetch messages:', error)
+			}
+		}
+
 		fetchFiles()
+		fetchMessages()
 	}, [])
 
 	useEffect(() => {
@@ -105,40 +118,56 @@ export function ChatPage() {
 		})
 	}
 
-	const send = () => {
+	const onKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+		if (e.key === 'Enter' && !e.shiftKey) {
+			e.preventDefault()
+			sendMessage()
+		}
+	}
+
+	const canSend = input.trim().length > 0 && selectedFiles.size > 0 && !loading
+
+	const sendMessage = async () => {
+		const apiBaseUrl = import.meta.env.VITE_API_BASE_URL
+		const endpoint = `${apiBaseUrl}/chat/message`
+
 		if (!input.trim() || loading) return
 		const userMsg: ChatMessage = {
-			id: generateId(),
+			id: generateTemporaryId(),
 			role: 'user',
 			content: input.trim(),
-			created_at: new Date(),
+			created_at: new Date().toISOString(),
 		}
 		setMessages((prev) => [...prev, userMsg])
 		setInput('')
 		setLoading(true)
 
-		setTimeout(
-			() => {
-				const reply: ChatMessage = {
-					id: generateId(),
-					role: 'assistant',
-					content: MOCK_RESPONSES[Math.floor(Math.random() * MOCK_RESPONSES.length)]!,
-					created_at: new Date(),
-				}
-				setMessages((prev) => [...prev, reply])
-				setLoading(false)
-			},
-			1400 + Math.random() * 800
-		)
-	}
+		try {
+			const response = await fetch(endpoint, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					chat_id: CHAT_ID,
+					content: input.trim(),
+					role: 'user',
+					file_ids: Array.from(selectedFiles),
+				}),
+			})
 
-	const onKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-		if (e.key === 'Enter' && !e.shiftKey) {
-			e.preventDefault()
+			if (!response.ok) {
+				throw new Error(`Error sending message: ${response.statusText}`)
+			}
+			const data: { user_message: ChatMessage; ai_response: ChatMessage } =
+				await response.json()
+			const user_message: ChatMessage = data.user_message
+			const ai_response: ChatMessage = data.ai_response
+
+			setMessages((prev) => [...prev.slice(0, -1), user_message, ai_response])
+			setLoading(false)
+		} catch (error) {
+			console.error('Failed to send message:', error)
 		}
 	}
-
-	const canSend = input.trim().length > 0 && selectedFiles.size > 0 && !loading
 
 	return (
 		<div className="flex flex-1 overflow-hidden" style={{ height: 'calc(100vh - 48px)' }}>
@@ -328,7 +357,7 @@ export function ChatPage() {
 							}}
 						/>
 						<button
-							onClick={send}
+							onClick={sendMessage}
 							disabled={!canSend}
 							className={cn(
 								'aws-btn-primary h-[38px] px-3',

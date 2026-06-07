@@ -5,6 +5,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from app.repositories.file_repository import FileRepository
+from app.repositories.message_repository import MessageRepository
+from app.services.ai_service import AIService
+from app.services.chat_service import ChatService
 from app.services.file_service import FileService
 
 
@@ -48,8 +51,13 @@ class Context:
             create_extension=False,
         )
         self.file_repository = FileRepository()
+        self.message_repository = MessageRepository()
         self.file_service = FileService(
             self.vector_store, self.text_splitter, self.file_repository
+        )
+        self.ai_service = AIService(openai_api_key=self.settings.OPENAI_API_KEY)
+        self.chat_service = ChatService(
+            self.message_repository, self.file_service, self.ai_service
         )
 
 

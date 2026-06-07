@@ -60,3 +60,16 @@ class FileService:
     async def get_files(self, session: AsyncSession) -> list[FileRead]:
         files = await self.file_repository.get_files(session)
         return files
+
+    async def similarity_search(
+        self, query: str, file_ids: list[str], top_k: int = 10
+    ) -> list[Document]:
+        documents_filter = None
+        if file_ids:
+            documents_filter = {
+                "file_id": {"$in": [str(file_id) for file_id in file_ids]}
+            }
+        results = await self.vector_store.asimilarity_search(
+            query, k=top_k, filter=documents_filter
+        )
+        return results
