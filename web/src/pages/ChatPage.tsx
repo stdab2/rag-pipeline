@@ -12,7 +12,7 @@ const EXAMPLE_QUESTIONS = [
 	'How do I reset my API key?',
 ]
 
-const CHAT_ID = '74e0ddc7-0dc7-4cfc-96b2-7abaa2ea112c'
+const CHAT_ID = '476b719c-ce11-4f98-b7fd-8ff91a9d5a42'
 
 function generateTemporaryId() {
 	return Math.random().toString(36).slice(2)
