@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.file import File as FileModel
 from app.repositories.file_repository import FileRepository
-from app.schemas.file import FileCreate, FileRead
+from app.schemas.file import FileCreate, FileRead, FilesDelete
 from app.services.to_documents_conversion import FileToDocumentsConversionFactory
 
 
@@ -73,3 +73,6 @@ class FileService:
             query, k=top_k, filter=documents_filter
         )
         return results
+
+    async def delete_files(self, session: AsyncSession, files_delete: FilesDelete):
+        await self.file_repository.delete_files(session, files_delete)

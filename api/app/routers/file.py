@@ -2,7 +2,7 @@ from fastapi import APIRouter, File, UploadFile
 from fastapi.responses import StreamingResponse
 
 from app.dependencies import FileServiceDependency, SessionDependency
-from app.schemas.file import FileRead
+from app.schemas.file import FileRead, FilesDelete
 
 router = APIRouter(prefix="/files", tags=["files"])
 
@@ -27,3 +27,11 @@ async def upload_files(
         yield 'data: {"progress": 100, "stage": "done"}\n\n'
 
     return StreamingResponse(generate(), media_type="text/event-stream")
+
+@router.delete("")
+async def delete_files(
+    session: SessionDependency,
+    file_service: FileServiceDependency,
+    files_delete: FilesDelete
+):
+    await file_service.delete_files(session, files_delete)

@@ -1,8 +1,8 @@
-from sqlalchemy import select
+from sqlalchemy import select, delete, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.file import File as FileModel
-from app.schemas.file import FileCreate, FileRead
+from app.schemas.file import FileCreate, FileRead, FilesDelete
 
 
 class FileRepository:
@@ -25,3 +25,16 @@ class FileRepository:
         result = await session.execute(query)
         files = result.scalars().all()
         return [FileRead.model_validate(file) for file in files]
+
+    async def delete_files(self, session: AsyncSession, files_delete: FilesDelete):
+        file_ids = [str(file_id) for file_id in files_delete.file_ids]
+        query = delete(FileModel).where(FileModel.id.in_(file_ids))
+        await session.execute(query)
+        await session.execute(
+            text("""
+                DELETE FROM langchain_pg_embedding
+                WHERE cmetadata->>'file_id' = ANY(:file_ids)
+            """),
+            {"file_ids": file_ids},
+        )
+        await session.commit()

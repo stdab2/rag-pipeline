@@ -65,11 +65,32 @@ export function FilesPage() {
 		else next.add(id)
 		setSelected(next)
 	}
-
-	// should call backend
-	const deleteSelected = () => {
-		setFiles((prev) => prev.filter((f) => !selected.has(f.id)))
-		setSelected(new Set())
+	
+	const deleteSelectedFiles = async (file_ids: Set<string>) => {
+		const apiBaseUrl = import.meta.env.VITE_API_BASE_URL
+		const endpoint = `${apiBaseUrl}/files`
+		try {
+			const response = await fetch(endpoint, {
+				method: 'DELETE',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					file_ids: [...file_ids]
+				}),
+			})
+			if (!response.ok) {
+				throw new Error(`Error fetching files: ${response.statusText}`)
+			}
+			setFiles((prev) => prev.filter((f) => !file_ids.has(f.id)))
+			setSelected((prev) => {
+				const newSet = new Set(prev)
+				for (const element of file_ids) {
+					newSet.delete(element)
+				}
+				return newSet
+			})
+		} catch (error) {
+			console.error('Failed to delete files:', error)
+		}
 	}
 
 	// should call backend
@@ -107,7 +128,7 @@ export function FilesPage() {
 				</div>
 				{selected.size > 0 && (
 					<ButtonDanger
-						onClick={deleteSelected}
+						onClick={() => deleteSelectedFiles(selected)}
 						buttonText={`Delete ${selected.size} selected`}
 						icon={<Trash2 size={14} />}
 					/>
@@ -243,14 +264,7 @@ export function FilesPage() {
 												<RefreshCw size={14} />
 											</button>*/}
 											<button
-												onClick={() => {
-													setFiles((p) => p.filter((x) => x.id !== f.id))
-													setSelected((s) => {
-														const n = new Set(s)
-														n.delete(f.id)
-														return n
-													})
-												}}
+												onClick={() => deleteSelectedFiles(new Set([f.id]))}
 												title="Delete"
 												className="text-aws-muted hover:text-status-error transition-colors"
 											>

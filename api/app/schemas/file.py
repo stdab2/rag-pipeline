@@ -19,3 +19,6 @@ class FileRead(BaseModel):
     content_type: str
     size: int
     created_at: datetime
+
+class FilesDelete(BaseModel):
+    file_ids: list[str]
