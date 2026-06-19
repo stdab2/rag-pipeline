@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Trash2, FileText, Search } from 'lucide-react'
+import { Trash2, FileText, Search, RefreshCw, Loader2, CheckCircle } from 'lucide-react'
 import { cn, formatBytes, formatDate, toDate } from '@/lib/utils'
 import type { File } from '@/types'
 import { ButtonDanger } from '@/components/ButtonDanger'
@@ -25,6 +25,8 @@ export function FilesPage() {
 	const [search, setSearch] = useState<string>('')
 	const [sortKey, setSortKey] = useState<SortKey>('uploadedAt')
 	const [sortAsc, setSortAsc] = useState<boolean>(false)
+	const [reindex, setReindex] = useState<Set<string>>(new Set())
+	const [confirmReindex, setConfirmReindex] = useState<Set<string>>(new Set())
 
 	useEffect(() => {
 		const apiBaseUrl = import.meta.env.VITE_API_BASE_URL
@@ -65,7 +67,7 @@ export function FilesPage() {
 		else next.add(id)
 		setSelected(next)
 	}
-	
+
 	const deleteSelectedFiles = async (file_ids: Set<string>) => {
 		const apiBaseUrl = import.meta.env.VITE_API_BASE_URL
 		const endpoint = `${apiBaseUrl}/files`
@@ -78,7 +80,7 @@ export function FilesPage() {
 				}),
 			})
 			if (!response.ok) {
-				throw new Error(`Error fetching files: ${response.statusText}`)
+				throw new Error(`Error deleting files: ${response.statusText}`)
 			}
 			setFiles((prev) => prev.filter((f) => !file_ids.has(f.id)))
 			setSelected((prev) => {
@@ -93,17 +95,56 @@ export function FilesPage() {
 		}
 	}
 
-	// should call backend
-	// const reindexFile = (id: string) => {
-	// 	setFiles((prev) =>
-	// 		prev.map((f) =>
-	// 			f.id === id ? { ...f, status: 'processing', errorMessage: undefined! } : f
-	// 		)
-	// 	)
-	// 	setTimeout(() => {
-	// 		setFiles((prev) => prev.map((f) => (f.id === id ? { ...f, status: 'indexed' } : f)))
-	// 	}, 2500)
-	// }
+	const reindexFile = async (id: string) => {
+		setReindex((prev) => {
+			const newSet = new Set(prev)
+			newSet.add(id)
+			return newSet
+		})
+
+		const apiBaseUrl = import.meta.env.VITE_API_BASE_URL
+		const endpoint = `${apiBaseUrl}/files/${id}/reindex`
+
+		try {
+			const response = await fetch(endpoint, {
+				method: 'POST',
+			})
+			if (!response.ok) {
+				throw new Error(`Error reindexing file: ${response.statusText}`)
+			}
+			setConfirmReindex((prev) => {
+				const newSet = new Set(prev)
+				newSet.add(id)
+				return newSet
+			})
+
+			setTimeout(() => {
+				setConfirmReindex((prev) => {
+					const newSet = new Set(prev)
+					prev.delete(id)
+					return newSet
+				})
+
+				setReindex((prev) => {
+					const newSet = new Set(prev)
+					prev.delete(id)
+					return newSet
+				})
+			}, 5000)
+
+		} catch (error) {
+			console.error('Failed to delete files:', error)
+		}
+	}
+
+
+
+
+
+
+
+
+
 
 	const handleSort = (key: SortKey) => {
 		if (sortKey == key) setSortAsc((a) => !a)
@@ -256,13 +297,16 @@ export function FilesPage() {
 									</td>
 									<td className="px-4 py-3">
 										<div className="flex items-center justify-end gap-2">
-											{/* <button
+											<button
 												onClick={() => reindexFile(f.id)}
 												title="Re-index"
+												disabled={reindex.has(f.id)}
 												className="text-aws-muted hover:text-aws-blue transition-colors"
 											>
-												<RefreshCw size={14} />
-											</button>*/}
+												{!reindex.has(f.id) && !confirmReindex.has(f.id) && <RefreshCw size={14} />}
+												{reindex.has(f.id) && !confirmReindex.has(f.id) && <Loader2 color="#ff9900" size={14} className="animate-spin" />}
+												{reindex.has(f.id) && confirmReindex.has(f.id) && <CheckCircle color="green" size={14} />}
+											</button>
 											<button
 												onClick={() => deleteSelectedFiles(new Set([f.id]))}
 												title="Delete"

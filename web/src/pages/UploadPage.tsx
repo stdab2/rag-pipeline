@@ -40,7 +40,7 @@ export function UploadPage() {
 
 	const uploadFile = (file: UploadFile, onProgress: (p: number) => void, onDone: () => void) => {
 		const formData = new FormData()
-		formData.append('file', file.file)
+		formData.append('uploaded_file', file.file)
 
 		const apiBaseUrl = import.meta.env.VITE_API_BASE_URL
 		const endpoint = `${apiBaseUrl}/files/uploadfile`

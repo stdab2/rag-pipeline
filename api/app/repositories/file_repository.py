@@ -8,7 +8,7 @@ from app.schemas.file import FileCreate, FileRead, FilesDelete
 class FileRepository:
     async def save_file(
         self, session: AsyncSession, file_info: FileCreate, file_path: str
-    ) -> FileModel:
+    ) -> FileRead:
         db_file = FileModel(
             name=file_info.name,
             file_path=file_path,
@@ -18,9 +18,9 @@ class FileRepository:
         session.add(db_file)
         await session.commit()
         await session.refresh(db_file)
-        return db_file
+        return FileRead.model_validate(db_file)
 
-    async def get_files(self, session: AsyncSession) -> list[FileRead]:
+    async def get_all_files(self, session: AsyncSession) -> list[FileRead]:
         query = select(FileModel)
         result = await session.execute(query)
         files = result.scalars().all()
@@ -36,5 +36,26 @@ class FileRepository:
                 WHERE cmetadata->>'file_id' = ANY(:file_ids)
             """),
             {"file_ids": file_ids},
+        )
+        await session.commit()
+
+    async def get_files(self, session: AsyncSession, files_delete: FilesDelete) -> list[FileRead]:
+        file_ids = [str(file_id) for file_id in files_delete.file_ids]
+        query = select(FileModel).where(FileModel.id.in_(file_ids))
+        result = await session.execute(query)
+        files = result.scalars().all()
+        return [FileRead.model_validate(file) for file in files]
+    
+    async def get_file(self, session: AsyncSession, file_id: str) -> FileRead:
+        file = await session.get(FileModel, file_id)
+        return FileRead.model_validate(file)
+    
+    async def delete_documents_by_file_id(self, session: AsyncSession, file_id: str):
+        await session.execute(
+            text("""
+                DELETE FROM langchain_pg_embedding
+                WHERE cmetadata->>'file_id' = ANY(:file_ids)
+            """),
+            {"file_ids": [file_id]},
         )
         await session.commit()
