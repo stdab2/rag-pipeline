@@ -12,7 +12,8 @@ interface UploadFile {
 	error?: string
 }
 
-const ACCEPTED_TYPES = ['.pdf', '.txt', '.md', '.docx', '.csv', '.json']
+// const ACCEPTED_TYPES = ['.pdf', '.txt', '.md', '.docx', '.csv', '.json']
+const ACCEPTED_TYPES = ['.pdf']
 const MAX_SIZE_MB = 50
 
 function generateId() {
@@ -241,11 +242,11 @@ export function UploadPage() {
 				<p className="aws-label text-aws-blue mb-2">Supported formats</p>
 				<div className="grid grid-cols-3 gap-x-6 gap-y-1 text-xs text-aws-muted">
 					<span>.pdf — PDF documents</span>
-					<span>.txt — Plain text</span>
+					{/* <span>.txt — Plain text</span>
 					<span>.md — Markdown</span>
 					<span>.docx — Word documents</span>
 					<span>.csv — Spreadsheets</span>
-					<span>.json — JSON data</span>
+					<span>.json — JSON data</span> */}
 				</div>
 				<p className="text-xs text-aws-muted mt-3">
 					Maximum file size: <strong className="text-aws-text">{MAX_SIZE_MB} MB</strong>.

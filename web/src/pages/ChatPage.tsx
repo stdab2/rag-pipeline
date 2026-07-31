@@ -42,12 +42,6 @@ function MessageBubble({ msg }: { msg: ChatMessage }) {
 					)}
 				>
 					<ReactMarkdown>{msg.content}</ReactMarkdown>
-					{/*msg.content.split('\n').map((line, i) => (
-						<span key={i}>
-							{line}
-							{i < msg.content.split('\n').length - 1 && <br />}
-						</span>
-					))*/}
 				</div>
 				<span className="text-[11px] text-aws-muted mt-1 px-0.5">
 					{formatDate(msg.created_at)}

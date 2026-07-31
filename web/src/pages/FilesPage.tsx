@@ -5,7 +5,6 @@ import type { File } from '@/types'
 import { ButtonDanger } from '@/components/ButtonDanger'
 import { SortIcon } from '@/components/SortIcon'
 
-// ── Sort helpers ─────────────────────────────────────────────────────────────
 type SortKey = 'name' | 'size' | 'uploadedAt'
 
 function sortFiles(files: File[], key: SortKey, asc: boolean) {
@@ -76,7 +75,7 @@ export function FilesPage() {
 				method: 'DELETE',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
-					file_ids: [...file_ids]
+					file_ids: [...file_ids],
 				}),
 			})
 			if (!response.ok) {
@@ -131,20 +130,10 @@ export function FilesPage() {
 					return newSet
 				})
 			}, 5000)
-
 		} catch (error) {
 			console.error('Failed to delete files:', error)
 		}
 	}
-
-
-
-
-
-
-
-
-
 
 	const handleSort = (key: SortKey) => {
 		if (sortKey == key) setSortAsc((a) => !a)
@@ -303,9 +292,20 @@ export function FilesPage() {
 												disabled={reindex.has(f.id)}
 												className="text-aws-muted hover:text-aws-blue transition-colors"
 											>
-												{!reindex.has(f.id) && !confirmReindex.has(f.id) && <RefreshCw size={14} />}
-												{reindex.has(f.id) && !confirmReindex.has(f.id) && <Loader2 color="#ff9900" size={14} className="animate-spin" />}
-												{reindex.has(f.id) && confirmReindex.has(f.id) && <CheckCircle color="green" size={14} />}
+												{!reindex.has(f.id) &&
+													!confirmReindex.has(f.id) && (
+														<RefreshCw size={14} />
+													)}
+												{reindex.has(f.id) && !confirmReindex.has(f.id) && (
+													<Loader2
+														color="#ff9900"
+														size={14}
+														className="animate-spin"
+													/>
+												)}
+												{reindex.has(f.id) && confirmReindex.has(f.id) && (
+													<CheckCircle color="green" size={14} />
+												)}
 											</button>
 											<button
 												onClick={() => deleteSelectedFiles(new Set([f.id]))}
