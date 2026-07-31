@@ -25,7 +25,9 @@ class FileService:
         self.text_splitter = text_splitter
         self.file_repository = file_repository
 
-    async def save_file(self, session: AsyncSession, uploaded_file: UploadFile) -> FileModel:
+    async def save_file(
+        self, session: AsyncSession, uploaded_file: UploadFile
+    ) -> FileModel:
         UPLOAD_PATH = "uploads"
         UPLOAD_DIR = Path(UPLOAD_PATH)
         UPLOAD_DIR.mkdir(exist_ok=True)
@@ -36,17 +38,19 @@ class FileService:
             await buffer.write(content)
 
         file_info = FileCreate(
-            name=uploaded_file.filename, content_type=uploaded_file.content_type, size=uploaded_file.size
+            name=uploaded_file.filename,
+            content_type=uploaded_file.content_type,
+            size=uploaded_file.size,
         )
         file: FileRead = await self.file_repository.save_file(
             session, file_info, str(file_path)
         )
 
-        await self.__generate_and_save_documents(uploaded_file.content_type, str(file_path), file)
-
         return file
-    
-    async def __generate_and_save_documents(self, content_type: str, file_path: str, file: FileRead):
+
+    async def _generate_and_save_documents(
+        self, content_type: str, file_path: str, file: FileRead
+    ):
         documents = FileToDocumentsConversionFactory.get_converter(
             content_type
         ).convert(file_path)
@@ -79,7 +83,9 @@ class FileService:
         return results
 
     async def delete_files(self, session: AsyncSession, files_delete: FilesDelete):
-        files: list[FileRead] = await self.file_repository.get_files(session, files_delete)
+        files: list[FileRead] = await self.file_repository.get_files(
+            session, files_delete
+        )
         await self.file_repository.delete_files(session, files_delete)
 
         for file in files:
@@ -92,4 +98,4 @@ class FileService:
     async def reindex_file(self, session: AsyncSession, file_id: str):
         file: FileRead = await self.file_repository.get_file(session, file_id)
         await self.file_repository.delete_documents_by_file_id(session, file_id)
-        await self.__generate_and_save_documents(file.content_type, file.file_path, file)
+        await self._generate_and_save_documents(file.content_type, file.file_path, file)

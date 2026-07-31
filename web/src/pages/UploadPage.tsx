@@ -53,8 +53,8 @@ export function UploadPage() {
 				reader.read().then(({ done, value }) => {
 					if (done) return onDone()
 					const text = decoder.decode(value)
-					const match = text.match(/data: (.+)/)
-					if (match) {
+					const matches = text.matchAll(/data: (.+)/g)
+					for (const match of matches) {
 						const { progress } = JSON.parse(match[1]!)
 						onProgress(progress)
 					}
