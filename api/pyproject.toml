@@ -31,7 +31,7 @@ dev = [
 
 [tool.ruff]
 line-length = 88
-target-version = "py312"
+target-version = "py314"
 
 [tool.ruff.lint]
 select = [
@@ -41,4 +41,4 @@ select = [
 ]
 
 [tool.ruff.lint.isort]
-known-first-party = ["api"]
+known-first-party = ["app"]

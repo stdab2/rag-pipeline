@@ -1,9 +1,8 @@
 from langchain_openai import OpenAIEmbeddings
 from langchain_postgres import PGVector
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from pydantic_settings import BaseSettings, SettingsConfigDict
-from sqlalchemy.ext.asyncio import create_async_engine
 
+from app.config import Settings, get_settings
 from app.repositories.file_repository import FileRepository
 from app.repositories.message_repository import MessageRepository
 from app.services.ai_service import AIService
@@ -11,28 +10,9 @@ from app.services.chat_service import ChatService
 from app.services.file_service import FileService
 
 
-class Settings(BaseSettings):
-    POSTGRES_DB_URL: str
-    OPENAI_API_KEY: str
-    EMBEDDING_MODEL: str
-    CHUNK_SIZE: int = 1000
-    CHUNK_OVERLAP: int = 200
-    VECTOR_STORE_COLLECTION_NAME: str = "file_embeddings"
-    DEBUG: bool = False
-
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        env_prefix="RAG_PIPELINE_",
-        extra="ignore",
-    )
-
-
 class Context:
     def __init__(self, settings: Settings):
         self.settings = settings
-        self.engine = create_async_engine(
-            self.settings.POSTGRES_DB_URL, echo=self.settings.DEBUG
-        )
         self.text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=self.settings.CHUNK_SIZE,
             chunk_overlap=self.settings.CHUNK_OVERLAP,
@@ -62,5 +42,4 @@ class Context:
 
 
 def create_context() -> Context:
-    settings = Settings()
-    return Context(settings)
+    return Context(get_settings())

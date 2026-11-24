@@ -1,18 +1,13 @@
+import asyncio
 from logging.config import fileConfig
+
+import pgvector.sqlalchemy  # noqa: F401  (registers the Vector type for migrations)
 from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
-from alembic import context
-import os
-from dotenv import load_dotenv
-
-import pgvector.sqlalchemy
-
-from app.models.base import Base
-from app.models.file import File
-from app.models.chat import Chat
-from app.models.message import Message
 
 from alembic import context
+from app.config import get_settings
+from app.models import Base
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -23,8 +18,7 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-load_dotenv()
-config.set_main_option("sqlalchemy.url", os.environ["DATABASE_URL"])
+config.set_main_option("sqlalchemy.url", get_settings().POSTGRES_DB_URL)
 
 # add your model's MetaData object here
 # for 'autogenerate' support
@@ -38,7 +32,7 @@ target_metadata = Base.metadata
 # ... etc.
 
 def include_object(object, name, type_, reflected, compare_to):
-    """Exclude langchain_pg_collection and langchain_pg_embedding tables from migrations."""
+    """Exclude langchain_pg_* tables from migrations."""
     if type_ == "table" and name is not None and name.startswith("langchain_"):
         return False
     """Exclude index linked to langchain tables."""
@@ -98,8 +92,6 @@ async def run_migrations_online() -> None:
 
     await connectable.dispose()
 
-
-import asyncio
 
 if context.is_offline_mode():
     run_migrations_offline()

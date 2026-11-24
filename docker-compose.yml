@@ -21,8 +21,8 @@ services:
     ports:
       - "8000:8000"
     environment:
-      CLIENT_URL: http://localhost:5173
-      DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/pg_db
+      RAG_PIPELINE_CLIENT_URL: http://localhost:5173
+      RAG_PIPELINE_POSTGRES_DB_URL: postgresql+asyncpg://postgres:postgres@db:5432/pg_db
     volumes:
       - ./api:/app
     depends_on:

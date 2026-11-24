@@ -1,14 +1,15 @@
-import os
-
 from contextlib import asynccontextmanager
-from dotenv import load_dotenv
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.seed import seed_data
+from app.config import get_settings
+from app.db import engine
 from app.routers import chat, file
+from app.seed import seed_data
 
-load_dotenv()
+settings = get_settings()
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -18,12 +19,14 @@ async def lifespan(app: FastAPI):
 
     yield
     print("SHUTTING DOWN")
+    await engine.dispose()
+
 
 app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[os.environ["CLIENT_URL"]],
+    allow_origins=[settings.CLIENT_URL],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

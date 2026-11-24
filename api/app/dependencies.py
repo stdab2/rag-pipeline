@@ -1,21 +1,15 @@
 from typing import Annotated
 
 from fastapi import Depends
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.context import create_context
+from app.db import get_session
 from app.services.ai_service import AIService
 from app.services.chat_service import ChatService
 from app.services.file_service import FileService
 
 context = create_context()
-
-AsyncSessionLocal = async_sessionmaker(context.engine, expire_on_commit=False)
-
-
-async def get_session() -> AsyncSession:
-    async with AsyncSessionLocal() as session:
-        yield session
 
 
 def get_file_service() -> FileService:

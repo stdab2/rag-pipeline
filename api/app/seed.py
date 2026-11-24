@@ -1,12 +1,7 @@
-import os
-
-from dotenv import load_dotenv
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from app.models.chat import Chat as ChatModel
-
-load_dotenv()
+from app.db import AsyncSessionLocal
+from app.models import Chat as ChatModel
 
 
 async def seed_data():
@@ -15,9 +10,6 @@ async def seed_data():
     messages = []
 
     db_chat = ChatModel(id=id, title=title, messages=messages)
-
-    engine = create_async_engine(os.environ["RAG_PIPELINE_POSTGRES_DB_URL"], echo=False)
-    AsyncSessionLocal = async_sessionmaker(engine, expire_on_commit=False)
 
     async with AsyncSessionLocal() as session:
         query = select(ChatModel).where(ChatModel.id == id)
