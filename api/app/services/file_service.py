@@ -1,4 +1,5 @@
 from pathlib import Path
+from uuid import UUID
 
 import aiofiles
 import aiofiles.os
@@ -8,6 +9,7 @@ from langchain_postgres import PGVector
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.errors import BadRequestError, ErrorCode
 from app.models.file import File as FileModel
 from app.repositories.file_repository import FileRepository
 from app.schemas.file import FileCreate, FileRead, FilesDelete
@@ -24,6 +26,11 @@ class FileService:
         self.vector_store = vector_store
         self.text_splitter = text_splitter
         self.file_repository = file_repository
+
+    def validate_upload(self, uploaded_file: UploadFile) -> None:
+        if not uploaded_file.filename:
+            raise BadRequestError(ErrorCode.INVALID_FILE_NAME, "File name is missing")
+        FileToDocumentsConversionFactory.get_converter(uploaded_file.content_type)
 
     async def save_file(
         self, session: AsyncSession, uploaded_file: UploadFile
@@ -95,7 +102,7 @@ class FileService:
             except FileNotFoundError:
                 print("File does not exist.")
 
-    async def reindex_file(self, session: AsyncSession, file_id: str):
+    async def reindex_file(self, session: AsyncSession, file_id: UUID):
         file: FileRead = await self.file_repository.get_file(session, file_id)
         await self.file_repository.delete_documents_by_file_id(session, file_id)
         await self._generate_and_save_documents(file.content_type, file.file_path, file)

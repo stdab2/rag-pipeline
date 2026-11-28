@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
 from app.db import engine
+from app.errors import register_error_handlers
 from app.routers import chat, file
 from app.seed import seed_data
 
@@ -23,6 +24,8 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+
+register_error_handlers(app)
 
 app.add_middleware(
     CORSMiddleware,

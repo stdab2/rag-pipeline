@@ -3,6 +3,7 @@ from langchain_postgres import PGVector
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from app.config import Settings, get_settings
+from app.repositories.chat_repository import ChatRepository
 from app.repositories.file_repository import FileRepository
 from app.repositories.message_repository import MessageRepository
 from app.services.ai_service import AIService
@@ -30,6 +31,7 @@ class Context:
             use_jsonb=True,  # For metadata storage
             create_extension=False,
         )
+        self.chat_repository = ChatRepository()
         self.file_repository = FileRepository()
         self.message_repository = MessageRepository()
         self.file_service = FileService(
@@ -37,7 +39,10 @@ class Context:
         )
         self.ai_service = AIService(openai_api_key=self.settings.OPENAI_API_KEY)
         self.chat_service = ChatService(
-            self.message_repository, self.file_service, self.ai_service
+            self.chat_repository,
+            self.message_repository,
+            self.file_service,
+            self.ai_service,
         )
 
 

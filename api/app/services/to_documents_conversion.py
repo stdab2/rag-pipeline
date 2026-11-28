@@ -3,6 +3,8 @@ from abc import ABC, abstractmethod
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_core.documents import Document
 
+from app.errors import ErrorCode, UnsupportedMediaTypeError
+
 
 class FileToDocumentsConversion(ABC):
     @abstractmethod
@@ -24,11 +26,14 @@ class FileToDocumentsConversionFactory:
     }
 
     @staticmethod
-    def get_converter(content_type: str) -> FileToDocumentsConversion:
+    def get_converter(content_type: str | None) -> FileToDocumentsConversion:
         conversion_class = FileToDocumentsConversionFactory.conversions.get(
             content_type
         )
         if not conversion_class:
-            raise ValueError(f"Unsupported content type: {content_type}")
+            raise UnsupportedMediaTypeError(
+                ErrorCode.UNSUPPORTED_FILE_TYPE,
+                f"Unsupported file type: {content_type}",
+            )
 
         return conversion_class()

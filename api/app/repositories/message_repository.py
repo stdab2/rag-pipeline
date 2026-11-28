@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -21,7 +23,7 @@ class MessageRepository:
         return MessageRead.model_validate(db_message)
 
     async def get_messages_by_chat_id(
-        self, session: AsyncSession, chat_id: str
+        self, session: AsyncSession, chat_id: UUID
     ) -> list[MessageRead]:
         query = (
             select(MessageModel)
